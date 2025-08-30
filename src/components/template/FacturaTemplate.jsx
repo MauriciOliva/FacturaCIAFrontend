@@ -7,6 +7,7 @@ export const ListaFacturas = () => {
     facturasFiltradas,
     isLoading,
     getFacturasDetalladas,
+    getFacturasFiltradas,
     filtrarPorNIT,
     updateFacturaFecha,
     totalMonto,
@@ -23,12 +24,13 @@ export const ListaFacturas = () => {
     facturaMasAlta: 0
   });
 
+  // 🔄 Cargar datos al inicio
   useEffect(() => {
     getFacturasDetalladas();
-  }, [getFacturasDetalladas]);
+  }, []);
 
+  // 📊 Calcular estadísticas cuando cambian facturas
   useEffect(() => {
-    // Calcular estadísticas
     if (facturasFiltradas.length > 0) {
       const total = facturasFiltradas.length;
       const promedio = totalMonto / total;
@@ -39,22 +41,27 @@ export const ListaFacturas = () => {
         promedioMonto: promedio,
         facturaMasAlta: maxMonto
       });
+    } else {
+      setEstadisticas({
+        totalFacturas: 0,
+        promedioMonto: 0,
+        facturaMasAlta: 0
+      });
     }
   }, [facturasFiltradas, totalMonto]);
 
+  // 🔍 Aplicar filtros
   const handleFiltrar = async () => {
     if (nitBuscado.trim()) {
-        // ✅ Usar la función específica para NIT
-        await filtrarPorNIT(nitBuscado);
+      await filtrarPorNIT(nitBuscado);
     } else if (fechaBuscada) {
-        // ✅ Para otros filtros, usar getFacturasFiltradas
-        await getFacturasFiltradas({ fecha: fechaBuscada });
+      await getFacturasFiltradas({ fecha: fechaBuscada });
     } else {
-        // ✅ Mostrar todas si no hay filtros
-        await getFacturasDetalladas();
+      await getFacturasDetalladas();
     }
   };
 
+  // ❌ Limpiar filtros
   const handleLimpiarFiltros = () => {
     setNitBuscado("");
     setFechaBuscada("");
@@ -62,11 +69,12 @@ export const ListaFacturas = () => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleFiltrar();
     }
   };
 
+  // ✏️ Iniciar edición de fecha
   const iniciarEdicionFecha = (factura) => {
     setEditingFecha({
       facturaId: factura._id || factura.id,
@@ -78,6 +86,7 @@ export const ListaFacturas = () => {
 
   const cancelarEdicionFecha = () => setEditingFecha(null);
 
+  // 💾 Guardar nueva fecha
   const guardarFecha = async () => {
     if (!editingFecha.fechaTemporal) {
       alert("La fecha no puede estar vacía");
@@ -90,7 +99,8 @@ export const ListaFacturas = () => {
 
       await updateFacturaFecha(editingFecha.facturaId, fechaUTC.toISOString());
       setEditingFecha(null);
-      // Recargar datos después de editar
+
+      // 🔄 Recargar después de editar
       await getFacturasDetalladas();
     } catch (error) {
       console.error("Error al guardar la fecha:", error);
@@ -98,28 +108,25 @@ export const ListaFacturas = () => {
     }
   };
 
+  // 🗓️ Formatear fecha
   const formatearFecha = (fechaString) => {
     if (!fechaString) return "N/A";
     const fecha = new Date(fechaString);
-    return fecha.toLocaleDateString("es-GT"); // Formato guatemalteco
+    return fecha.toLocaleDateString("es-GT");
   };
 
+  // 💰 Formatear moneda
   const formatearMoneda = (monto) => {
-    return new Intl.NumberFormat('es-GT', {
-      style: 'currency',
-      currency: 'GTQ'
+    return new Intl.NumberFormat("es-GT", {
+      style: "currency",
+      currency: "GTQ"
     }).format(monto);
   };
 
-  const exportarPDF = () => {
-    // Simulación de exportación PDF
-    alert("Función de exportación PDF habilitada pronto");
-  };
+  const exportarPDF = () => alert("Función de exportación PDF habilitada pronto");
+  const imprimirTabla = () => window.print();
 
-  const imprimirTabla = () => {
-    window.print();
-  };
-
+  // ⏳ Loading
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40 text-blue-500 font-semibold animate-pulse">
@@ -131,14 +138,13 @@ export const ListaFacturas = () => {
     );
   }
 
+  // 🎨 Render principal
   return (
     <div className="p-4 md:p-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            📑 Sistema de Gestión de Facturas
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">📑 Sistema de Gestión de Facturas</h1>
           <p className="text-gray-600">Administra y consulta todas tus facturas</p>
         </div>
         
@@ -180,23 +186,19 @@ export const ListaFacturas = () => {
       {/* Filtros */}
       <div className="bg-white p-6 rounded-2xl shadow-md mb-6 border">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-700">
-            🔍 Herramientas de Búsqueda
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-700">🔍 Herramientas de Búsqueda</h2>
           <button
             onClick={() => setMostrarFiltrosAvanzados(!mostrarFiltrosAvanzados)}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
           >
             <Filter size={18} />
-            {mostrarFiltrosAvanzados ? 'Ocultar Filtros' : 'Filtros Avanzados'}
+            {mostrarFiltrosAvanzados ? "Ocultar Filtros" : "Filtros Avanzados"}
           </button>
         </div>
 
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              🔎 Buscar por NIT
-            </label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">🔎 Buscar por NIT</label>
             <input
               type="text"
               value={nitBuscado}
@@ -209,9 +211,7 @@ export const ListaFacturas = () => {
 
           {mostrarFiltrosAvanzados && (
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                📅 Filtrar por Fecha
-              </label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">📅 Filtrar por Fecha</label>
               <input
                 type="date"
                 value={fechaBuscada}
@@ -227,8 +227,7 @@ export const ListaFacturas = () => {
               disabled={isLoading}
               className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 transition-all disabled:opacity-50"
             >
-              <Search size={18} /> 
-              {isLoading ? 'Buscando...' : 'Aplicar Filtros'}
+              <Search size={18} /> {isLoading ? "Buscando..." : "Aplicar Filtros"}
             </button>
             <button
               onClick={handleLimpiarFiltros}
@@ -248,10 +247,7 @@ export const ListaFacturas = () => {
             <thead className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <tr>
                 {["NIT", "Nombre Cliente", "Fecha", "Serie", "Número", "Monto", "Acciones"].map((header) => (
-                  <th
-                    key={header}
-                    className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider"
-                  >
+                  <th key={header} className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">
                     {header}
                   </th>
                 ))}
@@ -265,21 +261,13 @@ export const ListaFacturas = () => {
                 return (
                   <tr
                     key={uniqueKey}
-                    className={`${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-blue-50 transition duration-200`}
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 transition duration-200`}
                   >
-                    <td className="px-6 py-4 border-b font-mono">
-                      {factura.NIT || 'N/A'}
-                    </td>
+                    <td className="px-6 py-4 border-b font-mono">{factura.NIT || "N/A"}</td>
                     <td className="px-6 py-4 border-b">
                       <div>
-                        <div className="font-medium text-gray-900">
-                          {factura.nombreCliente || factura.NombreCliente || 'Cliente no especificado'}
-                        </div>
-                        {factura.idCliente && (
-                          <div className="text-sm text-gray-500">ID: {factura.idCliente}</div>
-                        )}
+                        <div className="font-medium text-gray-900">{factura.nombreCliente || factura.NombreCliente || "Cliente no especificado"}</div>
+                        {factura.idCliente && <div className="text-sm text-gray-500">ID: {factura.idCliente}</div>}
                       </div>
                     </td>
                     <td className="px-6 py-4 border-b">
@@ -288,12 +276,7 @@ export const ListaFacturas = () => {
                           <input
                             type="date"
                             value={editingFecha.fechaTemporal}
-                            onChange={(e) =>
-                              setEditingFecha({
-                                ...editingFecha,
-                                fechaTemporal: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setEditingFecha({ ...editingFecha, fechaTemporal: e.target.value })}
                             className="px-3 py-1 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400"
                           />
                           <button
@@ -321,15 +304,9 @@ export const ListaFacturas = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 border-b font-mono">
-                      {factura.serie || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 border-b font-mono">
-                      {factura.numeroFactura || factura.numero || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 border-b font-semibold text-green-700">
-                      {formatearMoneda(factura.monto || 0)}
-                    </td>
+                    <td className="px-6 py-4 border-b font-mono">{factura.serie || "N/A"}</td>
+                    <td className="px-6 py-4 border-b font-mono">{factura.numeroFactura || factura.numero || "N/A"}</td>
+                    <td className="px-6 py-4 border-b font-semibold text-green-700">{formatearMoneda(factura.monto || 0)}</td>
                     <td className="px-6 py-4 border-b text-center">
                       {!isEditing && (
                         <button
@@ -362,39 +339,19 @@ export const ListaFacturas = () => {
       {facturasFiltradas.length > 0 && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              📊 Resumen Financiero
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Resumen Financiero</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Total Facturas:</span>
-                <span className="font-semibold">{estadisticas.totalFacturas}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Monto Total:</span>
-                <span className="font-semibold text-green-600">{formatearMoneda(totalMonto)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Promedio por Factura:</span>
-                <span className="font-semibold">{formatearMoneda(estadisticas.promedioMonto)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Factura Más Alta:</span>
-                <span className="font-semibold text-purple-600">{formatearMoneda(estadisticas.facturaMasAlta)}</span>
-              </div>
+              <div className="flex justify-between"><span>Total Facturas:</span><span className="font-semibold">{estadisticas.totalFacturas}</span></div>
+              <div className="flex justify-between"><span>Monto Total:</span><span className="font-semibold text-green-600">{formatearMoneda(totalMonto)}</span></div>
+              <div className="flex justify-between"><span>Promedio por Factura:</span><span className="font-semibold">{formatearMoneda(estadisticas.promedioMonto)}</span></div>
+              <div className="flex justify-between"><span>Factura Más Alta:</span><span className="font-semibold text-purple-600">{formatearMoneda(estadisticas.facturaMasAlta)}</span></div>
             </div>
           </div>
 
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-2xl shadow-md text-white">
-            <h3 className="text-xl font-semibold mb-4">
-              💰 Total General
-            </h3>
-            <div className="text-3xl font-bold mb-2">
-              {formatearMoneda(totalMonto)}
-            </div>
-            <p className="text-blue-100">
-              {facturasFiltradas.length} factura(s) encontrada(s)
-            </p>
+            <h3 className="text-xl font-semibold mb-4">💰 Total General</h3>
+            <div className="text-3xl font-bold mb-2">{formatearMoneda(totalMonto)}</div>
+            <p className="text-blue-100">{facturasFiltradas.length} factura(s) encontrada(s)</p>
           </div>
         </div>
       )}
