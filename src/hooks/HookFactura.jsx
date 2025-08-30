@@ -93,7 +93,7 @@ export const useFacturaStore = create((set, get) => ({
     updateFacturaFecha: async (facturaId, nuevaFecha) => {
     set({ isLoading: true });
     try {
-        const response = await api.patch(`/facturas/${facturaId}/fecha`, {
+        const response = await axios.patch(`${API_BASE_URL}/facturas/${facturaId}/fecha`, {
             fecha: nuevaFecha
         });
         
@@ -123,42 +123,50 @@ export const useFacturaStore = create((set, get) => ({
 },
     
     // Función para obtener facturas filtradas
-    getFacturasDetalladas: async () => {
+    getFacturasFiltradas: async (filtros = {}) => {
         set({ isLoading: true });
         try {
-            const response = await api.get('/facturas/detailed');
-            console.log('📦 Response completa:', response);
-            console.log('📊 Response data structure:', response.data);
-            console.log('🔍 Keys del response:', Object.keys(response.data));
+            // Llamar al endpoint con los filtros como query parameters
+            const response = await axios.get(`${API_BASE_URL}/facturas/detailed`, {
+                params: filtros
+            });
             
-            // Diferentes posibles estructuras de respuesta
-            let facturas = [];
+            const facturasFiltradas = response.data.data || response.data;
             
-            if (Array.isArray(response.data)) {
-                facturas = response.data;
-            } else if (response.data.data && Array.isArray(response.data.data)) {
-                facturas = response.data.data;
-            } else if (response.data.facturas && Array.isArray(response.data.facturas)) {
-                facturas = response.data.facturas;
-            } else if (response.data.result && Array.isArray(response.data.result)) {
-                facturas = response.data.result;
+            set({ 
+                facturasFiltradas,
+                isLoading: false 
+            });
+            console.log("Facturas filtradas:", facturasFiltradas);
+            return facturasFiltradas;
+        } catch (error) {
+            console.error("Error filtrando facturas:", error);
+            
+            // Fallback: si el endpoint no existe, filtrar manualmente
+            const { facturas } = get();
+            let facturasFiltradasManual = [...facturas];
+            
+            if (filtros.NIT) {
+                facturasFiltradasManual = facturasFiltradasManual.filter(factura => 
+                    factura.NIT && factura.NIT.includes(filtros.NIT)
+                );
             }
             
-            console.log('✅ Facturas extraídas:', facturas);
+            if (filtros.fecha) {
+                const fechaFiltro = new Date(filtros.fecha);
+                facturasFiltradasManual = facturasFiltradasManual.filter(factura => {
+                    if (!factura.fecha) return false;
+                    const fechaFactura = new Date(factura.fecha);
+                    return fechaFactura.toDateString() === fechaFiltro.toDateString();
+                });
+            }
             
-            const totalMonto = facturas.reduce((sum, factura) => sum + (factura.monto || 0), 0);
             set({ 
-                facturas, 
-                facturasFiltradas: facturas,
-                totalMonto,
+                facturasFiltradas: facturasFiltradasManual,
                 isLoading: false 
             });
             
-            return facturas;
-        } catch (error) {
-            console.error("Error obteniendo facturas:", error);
-            set({ isLoading: false });
-            throw error;
+            return facturasFiltradasManual;
         }
     },
     
@@ -171,7 +179,7 @@ export const useFacturaStore = create((set, get) => ({
     getFacturaById: async (id) => {
         set({ isLoading: true });
         try {
-            const response = await api.get(`/facturas/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/facturas/${id}`);
             set({ isLoading: false });
             return response.data;
         } catch (error) {
