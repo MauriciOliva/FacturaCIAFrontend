@@ -123,50 +123,42 @@ export const useFacturaStore = create((set, get) => ({
 },
     
     // Función para obtener facturas filtradas
-    getFacturasFiltradas: async (filtros = {}) => {
+    getFacturasDetalladas: async () => {
         set({ isLoading: true });
         try {
-            // Llamar al endpoint con los filtros como query parameters
-            const response = await api.get('/facturas/detailed', {
-                params: filtros
-            });
+            const response = await api.get('/facturas/detailed');
+            console.log('📦 Response completa:', response);
+            console.log('📊 Response data structure:', response.data);
+            console.log('🔍 Keys del response:', Object.keys(response.data));
             
-            const facturasFiltradas = response.data.data || response.data;
+            // Diferentes posibles estructuras de respuesta
+            let facturas = [];
             
+            if (Array.isArray(response.data)) {
+                facturas = response.data;
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+                facturas = response.data.data;
+            } else if (response.data.facturas && Array.isArray(response.data.facturas)) {
+                facturas = response.data.facturas;
+            } else if (response.data.result && Array.isArray(response.data.result)) {
+                facturas = response.data.result;
+            }
+            
+            console.log('✅ Facturas extraídas:', facturas);
+            
+            const totalMonto = facturas.reduce((sum, factura) => sum + (factura.monto || 0), 0);
             set({ 
-                facturasFiltradas,
+                facturas, 
+                facturasFiltradas: facturas,
+                totalMonto,
                 isLoading: false 
             });
-            console.log("Facturas filtradas:", facturasFiltradas);
-            return facturasFiltradas;
+            
+            return facturas;
         } catch (error) {
-            console.error("Error filtrando facturas:", error);
-            
-            // Fallback: si el endpoint no existe, filtrar manualmente
-            const { facturas } = get();
-            let facturasFiltradasManual = [...facturas];
-            
-            if (filtros.NIT) {
-                facturasFiltradasManual = facturasFiltradasManual.filter(factura => 
-                    factura.NIT && factura.NIT.includes(filtros.NIT)
-                );
-            }
-            
-            if (filtros.fecha) {
-                const fechaFiltro = new Date(filtros.fecha);
-                facturasFiltradasManual = facturasFiltradasManual.filter(factura => {
-                    if (!factura.fecha) return false;
-                    const fechaFactura = new Date(factura.fecha);
-                    return fechaFactura.toDateString() === fechaFiltro.toDateString();
-                });
-            }
-            
-            set({ 
-                facturasFiltradas: facturasFiltradasManual,
-                isLoading: false 
-            });
-            
-            return facturasFiltradasManual;
+            console.error("Error obteniendo facturas:", error);
+            set({ isLoading: false });
+            throw error;
         }
     },
     
