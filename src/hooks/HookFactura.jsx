@@ -1,12 +1,47 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ AGREGA ESTO PARA DEBUG
-console.log('🔄 API_BASE_URL:', API_BASE_URL);
-console.log('🔄 VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
+// ✅ Configuración global de Axios para CORS
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
+// ✅ Crea una instancia de axios con configuración específica
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    }
+});
+
+// ✅ Interceptor para debug
+api.interceptors.request.use(
+    (config) => {
+        console.log('🔄 Request URL:', config.url);
+        console.log('🔄 Request Headers:', config.headers);
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// ✅ Interceptor para respuestas
+api.interceptors.response.use(
+    (response) => {
+        console.log('✅ Response received:', response.status);
+        return response;
+    },
+    (error) => {
+        console.error('❌ Axios Error:', error);
+        console.error('❌ Error URL:', error.config?.url);
+        console.error('❌ Error Details:', error.response?.data);
+        return Promise.reject(error);
+    }
+);
 export const useFacturaStore = create((set, get) => ({
 
     isLoading: false,
@@ -24,9 +59,8 @@ export const useFacturaStore = create((set, get) => ({
     createFactura: async (facturaInfo) => {
         set({ isLoading: true });
         try {
-            const response = await axios.post(`${API_BASE_URL}/facturas/`, facturaInfo);
+            const response = await api.post('/facturas/', facturaInfo); // ✅ Usa 'api' en lugar de 'axios'
             set({ facturaData: response.data, isFacturaCreated: true });
-            console.log("Factura created:", response.data);
             return response.data;
         } catch (error) {
             console.error("Error creating factura:", error);
@@ -35,12 +69,11 @@ export const useFacturaStore = create((set, get) => ({
             set({ isLoading: false });
         }
     },
-    
-    // Función corregida para obtener facturas detalladas
+
     getFacturasDetalladas: async () => {
         set({ isLoading: true });
         try {
-            const response = await axios.get(`${API_BASE_URL}/facturas/detailed`);
+            const response = await api.get('/facturas/detailed'); // ✅ Usa 'api'
             const facturas = response.data.data || response.data || [];
             const totalMonto = facturas.reduce((sum, factura) => sum + (factura.monto || 0), 0);
             set({ 
@@ -49,7 +82,6 @@ export const useFacturaStore = create((set, get) => ({
                 totalMonto,
                 isLoading: false 
             });
-            console.log("Facturas detalladas fetched:", facturas);
             return facturas;
         } catch (error) {
             console.error("Error obteniendo facturas:", error);
