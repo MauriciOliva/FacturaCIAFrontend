@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 
-let baseURL = import.meta.env.VITE_API_BASE_URL || "";
+let baseURL = import.meta.env.VITE_axios_BASE_URL || "";
 
 // 🛠️ Normalizar: quitar "/" al final si existe
 if (baseURL.endsWith("/")) {
@@ -9,7 +9,7 @@ if (baseURL.endsWith("/")) {
 }
 
 // ✅ Crea una instancia de axios con configuración segura
-const api = axios.create({
+const axios = axios.create({
   baseURL,
   headers: {
     "Content-Type": "application/json",
@@ -18,7 +18,7 @@ const api = axios.create({
 });
 
 // ✅ Interceptor para debug
-api.interceptors.request.use(
+axios.interceptors.request.use(
   (config) => {
     console.log("🔄 Request URL:", `${config.baseURL}${config.url}`);
     console.log("🔄 Request Headers:", config.headers);
@@ -27,7 +27,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-api.interceptors.response.use(
+axios.interceptors.response.use(
   (response) => {
     console.log("✅ Response received:", response.status);
     return response;
@@ -54,7 +54,7 @@ export const useFacturaStore = create((set, get) => ({
   createFactura: async (facturaInfo) => {
     set({ isLoading: true });
     try {
-      const response = await api.post("/facturas/", facturaInfo);
+      const response = await axios.post("/facturas/", facturaInfo);
       set({ facturaData: response.data, isFacturaCreated: true });
       return response.data;
     } catch (error) {
@@ -68,7 +68,7 @@ export const useFacturaStore = create((set, get) => ({
   getFacturasDetalladas: async () => {
     set({ isLoading: true });
     try {
-      const response = await api.get("/facturas/detailed");
+      const response = await axios.get("/facturas/detailed");
       const facturas = response.data.data || response.data || [];
       const totalMonto = facturas.reduce(
         (sum, factura) => sum + (factura.monto || 0),
@@ -91,7 +91,7 @@ export const useFacturaStore = create((set, get) => ({
   updateFacturaFecha: async (facturaId, nuevaFecha) => {
     set({ isLoading: true });
     try {
-      const response = await api.patch(`/facturas/${facturaId}/fecha`, {
+      const response = await axios.patch(`/facturas/${facturaId}/fecha`, {
         fecha: nuevaFecha,
       });
 
@@ -134,7 +134,7 @@ export const useFacturaStore = create((set, get) => ({
         filtrosLimpios.fecha = filtros.fecha.trim();
       }
 
-      const response = await api.get("/facturas/detailed", {
+      const response = await axios.get("/facturas/detailed", {
         params: filtrosLimpios,
       });
 
@@ -161,7 +161,7 @@ export const useFacturaStore = create((set, get) => ({
       }
 
       const nitBuscado = nit.trim();
-      const response = await api.get("/facturas/detailed", {
+      const response = await axios.get("/facturas/detailed", {
         params: { nit: nitBuscado },
       });
 
@@ -187,7 +187,7 @@ export const useFacturaStore = create((set, get) => ({
   getFacturaById: async (id) => {
     set({ isLoading: true });
     try {
-      const response = await api.get(`/facturas/${id}`);
+      const response = await axios.get(`/facturas/${id}`);
       set({ isLoading: false });
       return response.data;
     } catch (error) {
