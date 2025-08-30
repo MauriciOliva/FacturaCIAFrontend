@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+
+// ✅ AGREGA ESTO PARA DEBUG
+console.log('🔄 API_BASE_URL:', API_BASE_URL);
+console.log('🔄 VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
+
 export const useFacturaStore = create((set, get) => ({
+
     isLoading: false,
     isFacturaCreated: false,
     setFacturaCreated: (value) => set({ isFacturaCreated: value }),
@@ -17,8 +24,9 @@ export const useFacturaStore = create((set, get) => ({
     createFactura: async (facturaInfo) => {
         set({ isLoading: true });
         try {
-            const response = await axios.post("http://localhost:3605/v1/api/facturas/", facturaInfo);
+            const response = await axios.post(`${API_BASE_URL}/facturas/`, facturaInfo);
             set({ facturaData: response.data, isFacturaCreated: true });
+            console.log("Factura created:", response.data);
             return response.data;
         } catch (error) {
             console.error("Error creating factura:", error);
@@ -32,20 +40,16 @@ export const useFacturaStore = create((set, get) => ({
     getFacturasDetalladas: async () => {
         set({ isLoading: true });
         try {
-            // URL CORREGIDA: usa /detailed en lugar de /detalladas
-            const response = await axios.get("http://localhost:3605/v1/api/facturas/detailed");
-            const facturas = response.data.data || response.data;
-            
-            // Calcular el monto total
+            const response = await axios.get(`${API_BASE_URL}/facturas/detailed`);
+            const facturas = response.data.data || response.data || [];
             const totalMonto = facturas.reduce((sum, factura) => sum + (factura.monto || 0), 0);
-            
             set({ 
                 facturas, 
                 facturasFiltradas: facturas,
                 totalMonto,
                 isLoading: false 
             });
-            
+            console.log("Facturas detalladas fetched:", facturas);
             return facturas;
         } catch (error) {
             console.error("Error obteniendo facturas:", error);
@@ -53,11 +57,11 @@ export const useFacturaStore = create((set, get) => ({
             throw error;
         }
     },
-    
+
     updateFacturaFecha: async (facturaId, nuevaFecha) => {
     set({ isLoading: true });
     try {
-        const response = await axios.patch(`http://localhost:3605/v1/api/facturas/${facturaId}/fecha`, {
+        const response = await axios.patch(`${API_BASE_URL}/facturas/${facturaId}/fecha`, {
             fecha: nuevaFecha
         });
         
@@ -77,7 +81,7 @@ export const useFacturaStore = create((set, get) => ({
             facturasFiltradas: updatedFacturasFiltradas,
             isLoading: false 
         });
-        
+        console.log("Fecha actualizada:", response.data);
         return response.data;
     } catch (error) {
         console.error("Error actualizando fecha:", error);
@@ -91,7 +95,7 @@ export const useFacturaStore = create((set, get) => ({
         set({ isLoading: true });
         try {
             // Llamar al endpoint con los filtros como query parameters
-            const response = await axios.get("http://localhost:3605/v1/api/facturas/detailed", {
+            const response = await axios.get(`${API_BASE_URL}/facturas/detailed`, {
                 params: filtros
             });
             
@@ -101,7 +105,7 @@ export const useFacturaStore = create((set, get) => ({
                 facturasFiltradas,
                 isLoading: false 
             });
-            
+            console.log("Facturas filtradas:", facturasFiltradas);
             return facturasFiltradas;
         } catch (error) {
             console.error("Error filtrando facturas:", error);
@@ -143,7 +147,7 @@ export const useFacturaStore = create((set, get) => ({
     getFacturaById: async (id) => {
         set({ isLoading: true });
         try {
-            const response = await axios.get(`http://localhost:3605/v1/api/facturas/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/facturas/${id}`);
             set({ isLoading: false });
             return response.data;
         } catch (error) {
