@@ -43,14 +43,15 @@ export const ListaFacturas = () => {
   }, [facturasFiltradas, totalMonto]);
 
   const handleFiltrar = async () => {
-    const filtros = {};
-    if (nitBuscado.trim()) filtros.NIT = nitBuscado.trim();
-    if (fechaBuscada) filtros.fecha = fechaBuscada;
-    
-    if (Object.keys(filtros).length > 0) {
-      await filtrarPorNIT(nitBuscado);
+    if (nitBuscado.trim()) {
+        // ✅ Usar la función específica para NIT
+        await filtrarPorNIT(nitBuscado);
+    } else if (fechaBuscada) {
+        // ✅ Para otros filtros, usar getFacturasFiltradas
+        await getFacturasFiltradas({ fecha: fechaBuscada });
     } else {
-      await getFacturasDetalladas();
+        // ✅ Mostrar todas si no hay filtros
+        await getFacturasDetalladas();
     }
   };
 

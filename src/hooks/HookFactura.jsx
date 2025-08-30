@@ -132,7 +132,7 @@ export const useFacturaStore = create((set, get) => ({
             // Limpiar filtros vacíos
             const filtrosLimpios = {};
             if (filtros.NIT && filtros.NIT.trim() !== '') {
-                filtrosLimpios.NIT = filtros.NIT.trim();
+                filtrosLimpios.nit = filtros.NIT.trim(); // ✅ Cambia a minúscula
             }
             if (filtros.fecha && filtros.fecha.trim() !== '') {
                 filtrosLimpios.fecha = filtros.fecha.trim();
@@ -140,7 +140,6 @@ export const useFacturaStore = create((set, get) => ({
             
             console.log('📤 Filtros enviados al backend:', filtrosLimpios);
             
-            // Llamar al endpoint DEL BACKEND que SÍ funciona
             const response = await api.get('/facturas/detailed', {
                 params: filtrosLimpios
             });
@@ -164,7 +163,6 @@ export const useFacturaStore = create((set, get) => ({
             return [];
         }
     },
-
     // Función específica para filtrar solo por NIT
     filtrarPorNIT: async (nit) => {
         set({ isLoading: true });
@@ -180,9 +178,9 @@ export const useFacturaStore = create((set, get) => ({
             const nitBuscado = nit.trim();
             console.log('📤 Enviando NIT al backend:', nitBuscado);
             
-            // Usar el endpoint del backend que SÍ filtra
+            // ✅ CORRECCIÓN: Usar 'nit' en minúscula para el parámetro
             const response = await api.get('/facturas/detailed', {
-                params: { NIT: nitBuscado }
+                params: { nit: nitBuscado } // ❌ CAMBIA 'NIT' por 'nit'
             });
             
             const facturasFiltradas = response.data.data || [];
