@@ -93,7 +93,7 @@ export const useFacturaStore = create((set, get) => ({
     updateFacturaFecha: async (facturaId, nuevaFecha) => {
     set({ isLoading: true });
     try {
-        const response = await axios.patch(`${API_BASE_URL}/facturas/${facturaId}/fecha`, {
+        const response = await api.patch(`/facturas/${facturaId}/fecha`, {
             fecha: nuevaFecha
         });
         
@@ -127,7 +127,7 @@ export const useFacturaStore = create((set, get) => ({
         set({ isLoading: true });
         try {
             // Llamar al endpoint con los filtros como query parameters
-            const response = await axios.get(`${API_BASE_URL}/facturas/detailed`, {
+            const response = await api.get('/facturas/detailed', {
                 params: filtros
             });
             
@@ -179,7 +179,7 @@ export const useFacturaStore = create((set, get) => ({
     getFacturaById: async (id) => {
         set({ isLoading: true });
         try {
-            const response = await axios.get(`${API_BASE_URL}/facturas/${id}`);
+            const response = await api.get(`/facturas/${id}`);
             set({ isLoading: false });
             return response.data;
         } catch (error) {
