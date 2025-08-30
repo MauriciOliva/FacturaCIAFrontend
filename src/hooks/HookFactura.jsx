@@ -123,50 +123,88 @@ export const useFacturaStore = create((set, get) => ({
 },
     
     // Función para obtener facturas filtradas
+    // Función para obtener facturas filtradas - USANDO EL BACKEND
     getFacturasFiltradas: async (filtros = {}) => {
         set({ isLoading: true });
         try {
-            // Llamar al endpoint con los filtros como query parameters
+            console.log('🔍 Enviando filtros al backend:', filtros);
+            
+            // Limpiar filtros vacíos
+            const filtrosLimpios = {};
+            if (filtros.NIT && filtros.NIT.trim() !== '') {
+                filtrosLimpios.NIT = filtros.NIT.trim();
+            }
+            if (filtros.fecha && filtros.fecha.trim() !== '') {
+                filtrosLimpios.fecha = filtros.fecha.trim();
+            }
+            
+            console.log('📤 Filtros enviados al backend:', filtrosLimpios);
+            
+            // Llamar al endpoint DEL BACKEND que SÍ funciona
             const response = await api.get('/facturas/detailed', {
-                params: filtros
+                params: filtrosLimpios
             });
             
-            const facturasFiltradas = response.data.data || response.data;
+            console.log('✅ Respuesta del backend:', response.data);
+            
+            const facturasFiltradas = response.data.data || [];
+            
+            console.log('📊 Facturas filtradas recibidas:', facturasFiltradas.length);
             
             set({ 
                 facturasFiltradas,
                 isLoading: false 
             });
-            console.log("Facturas filtradas:", facturasFiltradas);
+            
             return facturasFiltradas;
+            
         } catch (error) {
             console.error("Error filtrando facturas:", error);
+            set({ isLoading: false });
+            return [];
+        }
+    },
+
+    // Función específica para filtrar solo por NIT
+    filtrarPorNIT: async (nit) => {
+        set({ isLoading: true });
+        try {
+            console.log('🔍 Filtrando por NIT en backend:', nit);
             
-            // Fallback: si el endpoint no existe, filtrar manualmente
-            const { facturas } = get();
-            let facturasFiltradasManual = [...facturas];
-            
-            if (filtros.NIT) {
-                facturasFiltradasManual = facturasFiltradasManual.filter(factura => 
-                    factura.NIT && factura.NIT.includes(filtros.NIT)
-                );
+            if (!nit || nit.trim() === '') {
+                // Si no hay NIT, mostrar todas
+                console.log('🔄 Mostrando todas las facturas (NIT vacío)');
+                return await get().getFacturasDetalladas();
             }
             
-            if (filtros.fecha) {
-                const fechaFiltro = new Date(filtros.fecha);
-                facturasFiltradasManual = facturasFiltradasManual.filter(factura => {
-                    if (!factura.fecha) return false;
-                    const fechaFactura = new Date(factura.fecha);
-                    return fechaFactura.toDateString() === fechaFiltro.toDateString();
-                });
-            }
+            const nitBuscado = nit.trim();
+            console.log('📤 Enviando NIT al backend:', nitBuscado);
+            
+            // Usar el endpoint del backend que SÍ filtra
+            const response = await api.get('/facturas/detailed', {
+                params: { NIT: nitBuscado }
+            });
+            
+            const facturasFiltradas = response.data.data || [];
+            
+            console.log('✅ Filtrado por NIT completado:');
+            console.log('📊 Facturas encontradas:', facturasFiltradas.length);
+            
+            facturasFiltradas.forEach((factura, index) => {
+                console.log(`   ${index + 1}. NIT: ${factura.NIT}, Nombre: ${factura.nombreCliente}`);
+            });
             
             set({ 
-                facturasFiltradas: facturasFiltradasManual,
+                facturasFiltradas,
                 isLoading: false 
             });
             
-            return facturasFiltradasManual;
+            return facturasFiltradas;
+            
+        } catch (error) {
+            console.error("Error filtrando por NIT:", error);
+            set({ isLoading: false });
+            return [];
         }
     },
     
