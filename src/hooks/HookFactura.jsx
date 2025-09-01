@@ -90,23 +90,29 @@ export const useFacturaStore = create((set, get) => ({
     getFacturasFiltradas: async (filtros = {}) => {
         set({ isLoading: true });
         try {
-            // Llamar al endpoint con los filtros como query parameters
+            // ✅ Asegurar que el parámetro sea 'nit' en minúsculas para el backend
+            const params = {};
+            if (filtros.NIT) params.nit = filtros.NIT; // ✅ Convertir NIT a nit
+            if (filtros.fecha) params.fecha = filtros.fecha;
+            
+            console.log('🔍 Enviando filtros al backend:', params);
+            
             const response = await axios.get(`${API_BASE_URL}/facturas/detailed`, {
-                params: filtros
+                params: params // ✅ Enviar como 'nit' en minúsculas
             });
             
-            const facturasFiltradas = response.data.data || response.data;
+            const facturasFiltradas = response.data.data || response.data || [];
             
             set({ 
                 facturasFiltradas,
                 isLoading: false 
             });
-            console.log("Facturas filtradas:", facturasFiltradas);
+            console.log("✅ Facturas filtradas recibidas:", facturasFiltradas);
             return facturasFiltradas;
         } catch (error) {
-            console.error("Error filtrando facturas:", error);
+            console.error("❌ Error filtrando facturas:", error);
             
-            // Fallback: si el endpoint no existe, filtrar manualmente
+            // Fallback: filtrar manualmente en el frontend
             const { facturas } = get();
             let facturasFiltradasManual = [...facturas];
             
