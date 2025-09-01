@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useFacturaStore } from "../../hooks/HookFactura.jsx";
-import { Save, XCircle } from "lucide-react";
+import { Save, XCircle, X } from "lucide-react";
 
-export const FormsTemplate = () => {
+export const FormsTemplate = ({onClose}) => {
     const { createFactura, isLoading } = useFacturaStore();
 
     const [formData, setFormData] = useState({
