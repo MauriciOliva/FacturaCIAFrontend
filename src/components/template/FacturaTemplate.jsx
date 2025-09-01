@@ -21,6 +21,22 @@ export const ListaFacturas = () => {
     0
   );
 
+  // Función para calcular fecha límite y días de atraso
+  const getFechaLimite = (fechaString) => {
+    if (!fechaString) return null;
+    const fecha = new Date(fechaString);
+    fecha.setDate(fecha.getDate() + 30);
+    return fecha;
+  };
+
+  const getDiasAtraso = (fechaLimite) => {
+    if (!fechaLimite) return null;
+    const hoy = new Date();
+    const diffMs = hoy - fechaLimite;
+    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return diffDias > 0 ? diffDias : 0;
+  };
+
   useEffect(() => {
     getFacturasDetalladas();
   }, [getFacturasDetalladas]);
@@ -163,6 +179,8 @@ export const ListaFacturas = () => {
                 "NIT",
                 "Nombre",
                 "Fecha",
+                "Fecha límite",
+                "Días de atraso",
                 "Serie",
                 "Número",
                 "Monto",
@@ -183,6 +201,10 @@ export const ListaFacturas = () => {
                 factura._id || factura.id || `${factura.NIT}-${factura.numeroFactura}`;
               const isEditing =
                 editingFecha?.facturaId === (factura._id || factura.id);
+
+              // Calcular fecha límite y días de atraso
+              const fechaLimite = getFechaLimite(factura.fecha);
+              const diasAtraso = getDiasAtraso(fechaLimite);
 
               return (
                 <tr
@@ -228,6 +250,12 @@ export const ListaFacturas = () => {
                         {formatearFecha(factura.fecha)}
                       </span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 border-b">
+                    {fechaLimite ? fechaLimite.toLocaleDateString("es-ES") : "N/A"}
+                  </td>
+                  <td className="px-4 py-3 border-b">
+                    {diasAtraso > 0 ? `${diasAtraso} días` : "En plazo"}
                   </td>
                   <td className="px-4 py-3 border-b">{factura.serie}</td>
                   <td className="px-4 py-3 border-b">{factura.numeroFactura}</td>
