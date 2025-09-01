@@ -20,7 +20,13 @@ export const useFacturaStore = create((set, get) => ({
     createFactura: async (facturaInfo) => {
         set({ isLoading: true });
         try {
-            const response = await axios.post(`${API_BASE_URL}/facturas/`, facturaInfo);
+            // Asegurar que el campo sea 'NombreCliente' como espera el backend
+            const facturaPayload = { ...facturaInfo };
+            if (facturaPayload.nombreCliente) {
+                facturaPayload.NombreCliente = facturaPayload.nombreCliente;
+                delete facturaPayload.nombreCliente;
+            }
+            const response = await axios.post(`${API_BASE_URL}/facturas/`, facturaPayload);
             set({ facturaData: response.data, isFacturaCreated: true });
             console.log("Factura created:", response.data);
             return response.data;
