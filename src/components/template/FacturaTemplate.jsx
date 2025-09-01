@@ -4,6 +4,14 @@ import { Search, XCircle, Edit2, Save, X, Plus } from "lucide-react";
 import { FormsTemplate } from "./FormsTemplate.jsx";
 
 export const ListaFacturas = () => {
+  // Calcular días restantes de plazo
+  const getDiasPlazoRestante = (fechaLimite) => {
+    if (!fechaLimite) return null;
+    const hoy = new Date();
+    const diffMs = fechaLimite - hoy;
+    const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return diffDias > 0 ? diffDias : 0;
+  };
   const {
     facturasFiltradas,
     isLoading,
@@ -180,6 +188,7 @@ export const ListaFacturas = () => {
                 "Nombre",
                 "Fecha",
                 "Fecha límite",
+                "Días de plazo",
                 "Días de atraso",
                 "Serie",
                 "Número",
@@ -205,6 +214,7 @@ export const ListaFacturas = () => {
               // Calcular fecha límite y días de atraso
               const fechaLimite = getFechaLimite(factura.fecha);
               const diasAtraso = getDiasAtraso(fechaLimite);
+              const diasPlazoRestante = getDiasPlazoRestante(fechaLimite);
 
               return (
                 <tr
@@ -253,6 +263,9 @@ export const ListaFacturas = () => {
                   </td>
                   <td className="px-4 py-3 border-b">
                     {fechaLimite ? fechaLimite.toLocaleDateString("es-ES") : "N/A"}
+                  </td>
+                  <td className="px-4 py-3 border-b">
+                    {diasPlazoRestante !== null ? `${diasPlazoRestante} días` : "N/A"}
                   </td>
                   <td className="px-4 py-3 border-b">
                     {diasAtraso > 0 ? `${diasAtraso} días` : "En plazo"}
