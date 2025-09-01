@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useFacturaStore } from "../../hooks/HookFactura.jsx";
-import { Search, XCircle, Edit2, Save, X } from "lucide-react";
+import { Search, XCircle, Edit2, Save, X, Plus } from "lucide-react";
+import { FormsTemplate } from "./FormsTemplate.jsx";
 
 export const ListaFacturas = () => {
   const {
@@ -13,6 +14,7 @@ export const ListaFacturas = () => {
 
   const [filtros, setFiltros] = useState({ NIT: "" });
   const [editingFecha, setEditingFecha] = useState(null);
+  const [showForm, setShowForm] = useState(false); // ✅ Estado para mostrar/ocultar formulario
 
   const totalMonto = facturasFiltradas.reduce(
     (sum, factura) => sum + (factura.monto || 0),
@@ -70,6 +72,12 @@ export const ListaFacturas = () => {
     return fecha.toLocaleDateString("es-ES");
   };
 
+  // ✅ Función para cerrar el formulario y refrescar la lista
+  const handleFormClose = () => {
+    setShowForm(false);
+    getFacturasDetalladas(); // Refrescar la lista después de agregar
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40 text-blue-500 font-semibold animate-pulse">
@@ -80,9 +88,38 @@ export const ListaFacturas = () => {
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
-        📑 Listado de Facturas
-      </h1>
+      {/* ✅ Header con botón de agregar */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">
+          📑 Listado de Facturas
+        </h1>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition-all"
+        >
+          <Plus size={20} /> Agregar Factura
+        </button>
+      </div>
+
+      {/* ✅ Modal/Formulario para agregar facturas */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">📝 Nueva Factura</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <FormsTemplate onClose={handleFormClose} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded-2xl shadow-md mb-6 border">
