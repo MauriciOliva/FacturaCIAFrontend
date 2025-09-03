@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useFacturaStore } from "../../hooks/HookFactura.jsx";
+import { usePagoStore } from "../../hooks/HookPagos.jsx";
 import { Search, XCircle, Edit2, Save, X, Plus } from "lucide-react";
 import { FormsTemplate } from "./FormsTemplate.jsx";
 import { FormsCobros } from "./FormsCobros.jsx";
 
 export const ListaFacturas = () => {
+  // Hook de pagos
+  const {
+    pagos,
+    getPagos,
+    createPago,
+    isLoading: pagosLoading,
+    error: pagosError,
+    clearError
+  } = usePagoStore();
   // Calcular días restantes de plazo
   const getDiasPlazoRestante = (fechaLimite) => {
     if (!fechaLimite) return null;
@@ -26,7 +36,7 @@ export const ListaFacturas = () => {
 
   const [showForm, setShowForm] = useState(false); 
   const [showCobro, setShowCobro] = useState(false);
-  const [cobros, setCobros] = useState([]);
+  // Elimina el estado local de cobros, ahora se usa pagos del hook
   const [facturasActualizadas, setFacturasActualizadas] = useState([]);
 
   const totalMonto = facturasFiltradas.reduce(
@@ -52,7 +62,8 @@ export const ListaFacturas = () => {
 
   useEffect(() => {
     getFacturasDetalladas();
-  }, [getFacturasDetalladas]);
+    getPagos();
+  }, [getFacturasDetalladas, getPagos]);
 
   const handleFiltrar = () => {
     const filtrosActivos = Object.fromEntries(
@@ -169,21 +180,14 @@ export const ListaFacturas = () => {
               <FormsCobros
                 onClose={() => setShowCobro(false)}
                 facturas={facturasActualizadas.length > 0 ? facturasActualizadas : facturasFiltradas}
-                onSave={(nuevoCobro) => {
-                  setCobros(prev => [...prev, nuevoCobro]);
-                  setFacturasActualizadas(prev => {
-                    const facturas = prev.length > 0 ? prev : facturasFiltradas;
-                    return facturas.map(f => {
-                      if ((f._id || f.id) === nuevoCobro.facturaId) {
-                        const nuevoMonto = (f.monto || 0) - parseFloat(nuevoCobro.montoPago);
-                        return {
-                          ...f,
-                          monto: nuevoMonto < 0 ? 0 : nuevoMonto,
-                        };
-                      }
-                      return f;
-                    });
-                  });
+                onSave={async (nuevoCobro) => {
+                  try {
+                    await createPago(nuevoCobro);
+                    await getPagos();
+                    getFacturasDetalladas();
+                  } catch (error) {
+                    alert("Error al guardar el pago: " + (error?.message || error));
+                  }
                   setShowCobro(false);
                 }}
               />
@@ -339,7 +343,7 @@ export const ListaFacturas = () => {
         </table>
       </div>
 
-      {/* Tabla de Cobros */}
+      {/* Tabla de Pagos */}
       <div className="bg-white shadow-xl rounded-2xl overflow-hidden border">
         <table className="min-w-full border-collapse">
           <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
@@ -351,18 +355,18 @@ export const ListaFacturas = () => {
             </tr>
           </thead>
           <tbody>
-            {cobros.map((cobro, idx) => (
+            {pagos.map((pago, idx) => (
               <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="px-4 py-3 border-b">
-                  {cobro.boleta ? cobro.boleta : "-"}
-                </td>
-                <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{cobro.montoPago}</td>
-                <td className="px-4 py-3 border-b">{cobro.fechaPago}</td>
+                <td className="px-4 py-3 border-b">{pago.boleta || "-"}</td>
+                <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{pago.montoPago}</td>
+                <td className="px-4 py-3 border-b">{pago.fechaPago}</td>
                 <td className="px-4 py-3 border-b">-</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {pagosLoading && <div className="p-4 text-blue-600">Cargando pagos...</div>}
+        {pagosError && <div className="p-4 text-red-600">Error: {pagosError}</div>}
       </div>
 
       {/* Sin datos */}
