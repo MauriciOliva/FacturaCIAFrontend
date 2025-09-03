@@ -193,6 +193,9 @@ export const ListaFacturas = () => {
                 "Serie",
                 "Número",
                 "Monto",
+                "Fecha de Pago",
+                "Boleta de Pago",
+                "Monto a Pagar",
                 "Acciones",
               ].map((header) => (
                 <th
@@ -296,16 +299,6 @@ export const ListaFacturas = () => {
       {facturasFiltradas.length === 0 && !isLoading && (
         <div className="text-center py-8 text-gray-500">
           🚫 No se encontraron facturas
-        </div>
-      )}
-
-      {/* Total */}
-      {facturasFiltradas.length > 0 && (
-        <div className="mt-6 text-right bg-white p-4 rounded-xl shadow-md">
-          <h3 className="text-xl font-semibold text-gray-800">
-            💰 Total:{" "}
-            <span className="text-blue-600">Q{totalMonto.toFixed(2)}</span>
-          </h3>
         </div>
       )}
     </div>

@@ -11,7 +11,8 @@ export const FormsTemplate = ({onClose}) => {
         fecha: "",
         serie: "",
         numeroFactura: "",
-        monto: ""
+        monto: "",
+        fechaPago: ""
     });
 
     const [mensaje, setMensaje] = useState(null);
@@ -159,6 +160,29 @@ export const FormsTemplate = ({onClose}) => {
                     required
                     step="0.01"
                     placeholder="Ej. 1500.50"
+                    className="w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            {/* Fecha de Pago */}
+            <div>
+                <label className="block text-sm font-medium text-gray-600">Fecha de Pago</label>
+                <input
+                    type="date"
+                    name="fechaPago"
+                    value={formData.fechaPago}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            {/* Boleta de pago */}
+            <div>
+                <label className="block text-sm font-medium text-gray-600">Boleta de pago</label>
+                <input
+                    type="file"
+                    name="boletaPago"
+                    accept=".pdf,.jpg,.png"
                     className="w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
                 />
             </div>
