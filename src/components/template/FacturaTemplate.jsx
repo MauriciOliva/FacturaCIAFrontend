@@ -105,6 +105,12 @@ export const ListaFacturas = () => {
     getFacturasDetalladas(); // Refrescar la lista después de agregar
   };
 
+  // ✅ Función para cerrar el formulario de cobro y refrescar la lista
+  const handleCobroClose = () => {
+    setShowCobro(false);
+    getFacturasDetalladas(); // Refrescar la lista después de agregar
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40 text-blue-500 font-semibold animate-pulse">
@@ -120,6 +126,12 @@ export const ListaFacturas = () => {
         <h1 className="text-3xl font-bold text-gray-800">
           📑 Listado de Facturas
         </h1>
+        <button
+          onClick={() => setShowCobro(true)}
+          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow hover:bg-blue-700 transition-all"
+        >
+          <Plus size={20} /> Nuevo Cobro
+        </button>
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition-all"
