@@ -354,9 +354,7 @@ export const ListaFacturas = () => {
             {cobros.map((cobro, idx) => (
               <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="px-4 py-3 border-b">
-                  {cobro.boleta ? (
-                    <a href={URL.createObjectURL(cobro.boleta)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver archivo</a>
-                  ) : "-"}
+                  {cobro.boleta ? cobro.boleta : "-"}
                 </td>
                 <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{cobro.montoPago}</td>
                 <td className="px-4 py-3 border-b">{cobro.fechaPago}</td>
