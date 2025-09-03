@@ -23,9 +23,10 @@ export const ListaFacturas = () => {
 
   const [filtros, setFiltros] = useState({ NIT: "" });
   const [editingFecha, setEditingFecha] = useState(null);
-  const [showForm, setShowForm] = useState(false); // Estado para mostrar/ocultar formulario de factura
-  const [showCobro, setShowCobro] = useState(false); // Estado para mostrar/ocultar formulario de cobro
-  const [cobros, setCobros] = useState([]); // Estado para guardar cobros
+
+  const [showForm, setShowForm] = useState(false); 
+  const [showCobro, setShowCobro] = useState(false);
+  const [cobros, setCobros] = useState([]);
 
   const totalMonto = facturasFiltradas.reduce(
     (sum, factura) => sum + (factura.monto || 0),
@@ -127,16 +128,16 @@ export const ListaFacturas = () => {
           📑 Listado de Facturas
         </h1>
         <button
-          onClick={() => setShowCobro(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl shadow hover:bg-blue-700 transition-all"
-        >
-          <Plus size={20} /> Nuevo Cobro
-        </button>
-        <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition-all"
         >
           <Plus size={20} /> Agregar Factura
+        </button>
+        <button
+          onClick={() => setShowCobro(true)}
+          className="flex items-center gap-2 bg-blue-700 text-white px-5 py-3 rounded-xl shadow hover:bg-blue-800 transition-all"
+        >
+          💸 Registrar Cobro
         </button>
       </div>
 
@@ -155,6 +156,36 @@ export const ListaFacturas = () => {
                 </button>
               </div>
               <FormsTemplate onClose={handleFormClose} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCobro && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <FormsCobros
+                onClose={() => setShowCobro(false)}
+                facturas={facturasActualizadas.length > 0 ? facturasActualizadas : facturasFiltradas}
+                onSave={(nuevoCobro) => {
+                  setCobros(prev => [...prev, nuevoCobro]);
+                  setFacturasActualizadas(prev => {
+                    const facturas = prev.length > 0 ? prev : facturasFiltradas;
+                    return facturas.map(f => {
+                      if ((f._id || f.id) === nuevoCobro.facturaId) {
+                        const nuevoMonto = (f.monto || 0) - parseFloat(nuevoCobro.montoPago);
+                        return {
+                          ...f,
+                          monto: nuevoMonto < 0 ? 0 : nuevoMonto,
+                        };
+                      }
+                      return f;
+                    });
+                  });
+                  setShowCobro(false);
+                }}
+              />
             </div>
           </div>
         </div>
