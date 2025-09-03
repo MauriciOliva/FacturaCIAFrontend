@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useFacturaStore } from "../../hooks/HookFactura.jsx";
 import { Search, XCircle, Edit2, Save, X, Plus } from "lucide-react";
 import { FormsTemplate } from "./FormsTemplate.jsx";
+import { FormsCobros } from "./FormsCobros.jsx";
 
 export const ListaFacturas = () => {
   // Calcular días restantes de plazo
@@ -22,7 +23,9 @@ export const ListaFacturas = () => {
 
   const [filtros, setFiltros] = useState({ NIT: "" });
   const [editingFecha, setEditingFecha] = useState(null);
-  const [showForm, setShowForm] = useState(false); // ✅ Estado para mostrar/ocultar formulario
+  const [showForm, setShowForm] = useState(false); // Estado para mostrar/ocultar formulario de factura
+  const [showCobro, setShowCobro] = useState(false); // Estado para mostrar/ocultar formulario de cobro
+  const [cobros, setCobros] = useState([]); // Estado para guardar cobros
 
   const totalMonto = facturasFiltradas.reduce(
     (sum, factura) => sum + (factura.monto || 0),
@@ -178,8 +181,8 @@ export const ListaFacturas = () => {
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white shadow-xl rounded-2xl overflow-hidden border">
+      {/* Tabla de Facturas */}
+      <div className="bg-white shadow-xl rounded-2xl overflow-hidden border mb-8">
         <table className="min-w-full border-collapse">
           <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
             <tr>
@@ -222,7 +225,7 @@ export const ListaFacturas = () => {
               return (
                 <tr
                   key={uniqueKey}
-                  className={`${
+                  className={`$
                     index % 2 === 0 ? "bg-white" : "bg-gray-50"
                   } hover:bg-blue-50 transition`}
                 >
@@ -278,6 +281,30 @@ export const ListaFacturas = () => {
                   <td className="px-4 py-3 border-b font-semibold text-gray-700">
                     Q{factura.monto?.toFixed(2) || "0.00"}
                   </td>
+                  <td className="px-4 py-3 border-b">
+                    {factura.fechaPago
+                      ? formatearFecha(factura.fechaPago)
+                      : "No pagado"}
+                  </td>
+                  <td className="px-4 py-3 border-b">
+                    {factura.boletaPago ? (
+                      <a
+                        href={factura.boletaPago}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Ver Boleta
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 border-b">
+                    {factura.montoPago
+                      ? `Q${factura.montoPago.toFixed(2)}`
+                      : "N/A"}
+                  </td>
                   <td className="px-4 py-3 border-b text-center">
                     {!isEditing && (
                       <button
@@ -291,6 +318,34 @@ export const ListaFacturas = () => {
                 </tr>
               );
             })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Tabla de Cobros */}
+      <div className="bg-white shadow-xl rounded-2xl overflow-hidden border">
+        <table className="min-w-full border-collapse">
+          <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Boleta de Pago</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Monto a Pagar</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Fecha de Pago</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cobros.map((cobro, idx) => (
+              <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <td className="px-4 py-3 border-b">
+                  {cobro.boleta ? (
+                    <a href={URL.createObjectURL(cobro.boleta)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver archivo</a>
+                  ) : "-"}
+                </td>
+                <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{cobro.montoPago}</td>
+                <td className="px-4 py-3 border-b">{cobro.fechaPago}</td>
+                <td className="px-4 py-3 border-b">-</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

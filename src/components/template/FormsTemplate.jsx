@@ -12,7 +12,7 @@ export const FormsTemplate = ({onClose}) => {
         serie: "",
         numeroFactura: "",
         monto: "",
-        fechaPago: ""
+        
     });
 
     const [mensaje, setMensaje] = useState(null);
