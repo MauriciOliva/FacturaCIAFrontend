@@ -27,6 +27,7 @@ export const ListaFacturas = () => {
   const [showForm, setShowForm] = useState(false); 
   const [showCobro, setShowCobro] = useState(false);
   const [cobros, setCobros] = useState([]);
+  const [facturasActualizadas, setFacturasActualizadas] = useState([]);
 
   const totalMonto = facturasFiltradas.reduce(
     (sum, factura) => sum + (factura.monto || 0),
@@ -330,18 +331,7 @@ export const ListaFacturas = () => {
                       : "No pagado"}
                   </td>
                   <td className="px-4 py-3 border-b">
-                    {factura.boletaPago ? (
-                      <a
-                        href={factura.boletaPago}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        Ver Boleta
-                      </a>
-                    ) : (
-                      "N/A"
-                    )}
+                      {factura.boletaPago ? "Ver Boleta" : "N/A"}
                   </td>
                   <td className="px-4 py-3 border-b">
                     {factura.montoPago
