@@ -240,9 +240,6 @@ export const ListaFacturas = () => {
                 "Serie",
                 "Número",
                 "Monto",
-                "Fecha de Pago",
-                "Boleta de Pago",
-                "Monto a Pagar",
                 "Acciones",
               ].map((header) => (
                 <th
@@ -324,19 +321,6 @@ export const ListaFacturas = () => {
                   <td className="px-4 py-3 border-b">{factura.numeroFactura}</td>
                   <td className="px-4 py-3 border-b font-semibold text-gray-700">
                     Q{factura.monto?.toFixed(2) || "0.00"}
-                  </td>
-                  <td className="px-4 py-3 border-b">
-                    {factura.fechaPago
-                      ? formatearFecha(factura.fechaPago)
-                      : "No pagado"}
-                  </td>
-                  <td className="px-4 py-3 border-b">
-                      {factura.boletaPago ? "Ver Boleta" : "N/A"}
-                  </td>
-                  <td className="px-4 py-3 border-b">
-                    {factura.montoPago
-                      ? `Q${factura.montoPago.toFixed(2)}`
-                      : "N/A"}
                   </td>
                   <td className="px-4 py-3 border-b text-center">
                     {!isEditing && (
