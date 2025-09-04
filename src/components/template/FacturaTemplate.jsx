@@ -70,11 +70,13 @@ export const ListaFacturas = () => {
       Object.entries(filtros).filter(([_, value]) => value !== "")
     );
     getFacturasFiltradas(filtrosActivos);
+    getPagos(filtrosActivos);
   };
 
   const handleLimpiarFiltros = () => {
     setFiltros({ NIT: "" });
     getFacturasDetalladas();
+    getPagos();
   };
 
   const iniciarEdicionFecha = (factura) => {

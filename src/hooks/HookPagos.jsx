@@ -9,10 +9,13 @@ export const usePagoStore = create((set, get) => ({
     error: null,
 
     // Obtener todos los pagos
-    getPagos: async () => {
+    getPagos: async (filtros = {}) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.get(`${API_BASE_URL}/pagos/`);
+            // Construir query string
+            const params = new URLSearchParams(filtros).toString();
+            const url = params ? `${API_BASE_URL}/pagos/?${params}` : `${API_BASE_URL}/pagos/`;
+            const response = await axios.get(url);
             const pagos = response.data.data || response.data || [];
             set({ pagos, isLoading: false });
             return pagos;
