@@ -141,7 +141,7 @@ export const ListaFacturas = () => {
         </h1>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition-all"
+          className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition-all ml-[750px]"
         >
           <Plus size={20} /> Agregar Factura
         </button>
@@ -357,7 +357,7 @@ export const ListaFacturas = () => {
           <tbody>
             {pagos.map((pago, idx) => (
               <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="px-4 py-3 border-b">{factura.NIT}</td>
+                <td className="px-4 py-3 border-b">{pago.facturaId?.NIT || '-'}</td>
                 <td className="px-4 py-3 border-b">{pago.boleta || "-"}</td>
                 <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{pago.montoPago}</td>
                 <td className="px-4 py-3 border-b">{pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString("es-ES") : "N/A"}</td>
