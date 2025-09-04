@@ -348,19 +348,19 @@ export const ListaFacturas = () => {
         <table className="min-w-full border-collapse">
           <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
             <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">NIT</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Boleta de Pago</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Monto a Pagar</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Fecha de Pago</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {pagos.map((pago, idx) => (
               <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <td className="px-4 py-3 border-b">{factura.NIT}</td>
                 <td className="px-4 py-3 border-b">{pago.boleta || "-"}</td>
                 <td className="px-4 py-3 border-b font-semibold text-gray-700">Q{pago.montoPago}</td>
-                <td className="px-4 py-3 border-b">{pago.fechaPago}</td>
-                <td className="px-4 py-3 border-b">-</td>
+                <td className="px-4 py-3 border-b">{pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString("es-ES") : "N/A"}</td>
               </tr>
             ))}
           </tbody>
