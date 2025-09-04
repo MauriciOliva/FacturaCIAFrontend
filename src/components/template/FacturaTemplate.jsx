@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useFacturaStore } from "../../hooks/HookFactura.jsx";
 import { usePagoStore } from "../../hooks/HookPagos.jsx";
 import { Search, XCircle, Edit2, Save, X, Plus } from "lucide-react";
@@ -15,6 +15,7 @@ export const ListaFacturas = () => {
     error: pagosError,
     clearError
   } = usePagoStore();
+  
   // Calcular días restantes de plazo
   const getDiasPlazoRestante = (fechaLimite) => {
     if (!fechaLimite) return null;
@@ -23,23 +24,53 @@ export const ListaFacturas = () => {
     const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     return diffDias > 0 ? diffDias : 0;
   };
+  
   const {
     facturasFiltradas,
     isLoading,
     getFacturasDetalladas,
     getFacturasFiltradas,
     updateFacturaFecha,
+    facturas // Agregamos el estado de todas las facturas
   } = useFacturaStore();
 
   const [filtros, setFiltros] = useState({ NIT: "" });
   const [editingFecha, setEditingFecha] = useState(null);
-
   const [showForm, setShowForm] = useState(false); 
   const [showCobro, setShowCobro] = useState(false);
-  // Elimina el estado local de cobros, ahora se usa pagos del hook
-  const [facturasActualizadas, setFacturasActualizadas] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const totalMonto = facturasFiltradas.reduce(
+  // Obtener NITs únicos de todas las facturas para las sugerencias
+  const nitsUnicos = useMemo(() => {
+    const nits = facturas.map(f => f.NIT).filter(Boolean);
+    return [...new Set(nits)].sort();
+  }, [facturas]);
+
+  // Filtrar facturas en tiempo real según lo que se escribe en el NIT
+  const facturasFiltradasEnTiempoReal = useMemo(() => {
+    if (!filtros.NIT) return facturasFiltradas;
+    
+    return facturasFiltradas.filter(factura => 
+      factura.NIT && factura.NIT.toLowerCase().includes(filtros.NIT.toLowerCase())
+    );
+  }, [facturasFiltradas, filtros.NIT]);
+
+  // Generar sugerencias basadas en lo que se está escribiendo
+  useEffect(() => {
+    if (filtros.NIT && filtros.NIT.length > 0) {
+      const filteredSuggestions = nitsUnicos.filter(nit =>
+        nit.toLowerCase().includes(filtros.NIT.toLowerCase())
+      );
+      setSuggestions(filteredSuggestions);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [filtros.NIT, nitsUnicos]);
+
+  const totalMonto = facturasFiltradasEnTiempoReal.reduce(
     (sum, factura) => sum + (factura.monto || 0),
     0
   );
@@ -77,6 +108,12 @@ export const ListaFacturas = () => {
     setFiltros({ NIT: "" });
     getFacturasDetalladas();
     getPagos();
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionClick = (nit) => {
+    setFiltros({ ...filtros, NIT: nit });
+    setShowSuggestions(false);
   };
 
   const iniciarEdicionFecha = (factura) => {
@@ -117,13 +154,13 @@ export const ListaFacturas = () => {
   // ✅ Función para cerrar el formulario y refrescar la lista
   const handleFormClose = () => {
     setShowForm(false);
-    getFacturasDetalladas(); // Refrescar la lista después de agregar
+    getFacturasDetalladas();
   };
 
   // ✅ Función para cerrar el formulario de cobro y refrescar la lista
   const handleCobroClose = () => {
     setShowCobro(false);
-    getFacturasDetalladas(); // Refrescar la lista después de agregar
+    getFacturasDetalladas();
   };
 
   if (isLoading) {
@@ -181,7 +218,7 @@ export const ListaFacturas = () => {
             <div className="p-6">
               <FormsCobros
                 onClose={() => setShowCobro(false)}
-                facturas={facturasActualizadas.length > 0 ? facturasActualizadas : facturasFiltradas}
+                facturas={facturasFiltradasEnTiempoReal}
                 onSave={async (nuevoCobro) => {
                   try {
                     await createPago(nuevoCobro);
@@ -204,17 +241,37 @@ export const ListaFacturas = () => {
           🔎 Buscar por NIT
         </h2>
         <div className="flex flex-wrap gap-3 items-end">
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-600 mb-1">
               NIT
             </label>
             <input
               type="text"
               value={filtros.NIT}
-              onChange={(e) => setFiltros({ ...filtros, NIT: e.target.value })}
+              onChange={(e) => {
+                setFiltros({ ...filtros, NIT: e.target.value });
+                setShowSuggestions(true);
+              }}
+              onFocus={() => filtros.NIT && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               placeholder="Ej. 123456-7"
               className="px-3 py-2 border rounded-xl shadow-sm w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
+            
+            {/* Lista de sugerencias */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {suggestions.map((nit, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-2 cursor-pointer hover:bg-blue-50"
+                    onClick={() => handleSuggestionClick(nit)}
+                  >
+                    {nit}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={handleFiltrar}
@@ -229,6 +286,13 @@ export const ListaFacturas = () => {
             <XCircle size={18} /> Limpiar
           </button>
         </div>
+        
+        {/* Mostrar resultados del filtro en tiempo real */}
+        {filtros.NIT && (
+          <div className="mt-3 text-sm text-gray-600">
+            Mostrando {facturasFiltradasEnTiempoReal.length} de {facturasFiltradas.length} facturas
+          </div>
+        )}
       </div>
 
       {/* Tabla de Facturas */}
@@ -258,7 +322,7 @@ export const ListaFacturas = () => {
             </tr>
           </thead>
           <tbody>
-            {facturasFiltradas.map((factura, index) => {
+            {facturasFiltradasEnTiempoReal.map((factura, index) => {
               const uniqueKey =
                 factura._id || factura.id || `${factura.NIT}-${factura.numeroFactura}`;
               const isEditing =
@@ -272,7 +336,7 @@ export const ListaFacturas = () => {
               return (
                 <tr
                   key={uniqueKey}
-                  className={`$
+                  className={`${
                     index % 2 === 0 ? "bg-white" : "bg-gray-50"
                   } hover:bg-blue-50 transition`}
                 >
@@ -372,7 +436,7 @@ export const ListaFacturas = () => {
       </div>
 
       {/* Sin datos */}
-      {facturasFiltradas.length === 0 && !isLoading && (
+      {facturasFiltradasEnTiempoReal.length === 0 && !isLoading && (
         <div className="text-center py-8 text-gray-500">
           🚫 No se encontraron facturas
         </div>
